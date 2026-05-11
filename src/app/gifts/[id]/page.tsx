@@ -1,22 +1,26 @@
 import Link from "next/link";
 import { Gift, ArrowLeft, Check, Truck, Shield } from "lucide-react";
+import { supabase } from "@/lib/supabase";
+import { notFound } from "next/navigation";
 
-// Fake product data
-const product = {
-  id: "1", 
-  name: "Coffret Dégustation Truffes", 
-  price: 65, 
-  category: "Food", 
-  description: "Un assortiment exceptionnel des meilleures truffes au chocolat noir, lait et blanc, fabriquées artisanalement. Le cadeau parfait pour les gourmands exigeants.",
-  image: "https://images.unsplash.com/photo-1605335035252-4fc88656d0d2?w=1200&q=80",
-  features: [
-    "Fabrication artisanale française",
-    "Ingrédients 100% naturels",
-    "Boîte cadeau premium incluse"
-  ]
-};
+export default async function ProductDetail({ params }: { params: { id: string } }) {
+  const { data: product } = await supabase
+    .from('products')
+    .select('*')
+    .eq('id', params.id)
+    .single();
 
-export default function ProductDetail({ params }: { params: { id: string } }) {
+  if (!product) {
+    notFound();
+  }
+
+  // Fake features for now since they are not in the DB
+  const features = [
+    "Fabrication premium",
+    "Qualité garantie",
+    "Boîte cadeau incluse"
+  ];
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
@@ -38,7 +42,7 @@ export default function ProductDetail({ params }: { params: { id: string } }) {
         <div className="grid md:grid-cols-2 gap-12 lg:gap-24 max-w-6xl mx-auto">
           {/* Image */}
           <div className="rounded-3xl overflow-hidden bg-muted aspect-square relative border">
-            <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+            <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
           </div>
 
           {/* Content */}
@@ -54,7 +58,7 @@ export default function ProductDetail({ params }: { params: { id: string } }) {
             </p>
 
             <ul className="space-y-3 mb-10">
-              {product.features.map((feature, idx) => (
+              {features.map((feature, idx) => (
                 <li key={idx} className="flex items-center gap-3 text-muted-foreground">
                   <div className="bg-primary/10 p-1 rounded-full text-primary">
                     <Check className="w-4 h-4" />
@@ -75,9 +79,12 @@ export default function ProductDetail({ params }: { params: { id: string } }) {
               </div>
             </div>
 
-            <div className="mt-auto">
-              <Link href="/checkout" className="block w-full bg-primary text-primary-foreground text-center py-4 rounded-2xl text-lg font-bold hover:bg-primary/90 transition-all hover:shadow-lg hover:-translate-y-1">
-                Offrir ce cadeau
+            <div className="mt-auto space-y-3">
+              <Link href={`/checkout?productId=${product.id}`} className="block w-full bg-primary text-primary-foreground text-center py-4 rounded-2xl text-lg font-bold hover:bg-primary/90 transition-all hover:shadow-lg hover:-translate-y-1">
+                Offrir ce cadeau (Seul)
+              </Link>
+              <Link href={`/group-gift/create?giftId=${product.id}`} className="block w-full bg-secondary text-secondary-foreground text-center py-4 rounded-2xl text-lg font-bold hover:bg-secondary/80 transition-all hover:shadow-lg hover:-translate-y-1 border border-border">
+                Offrir à plusieurs (Créer une cagnotte)
               </Link>
               <p className="text-center text-xs text-muted-foreground mt-4">
                 Vous n'avez pas besoin de l'adresse du destinataire.

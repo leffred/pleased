@@ -1,0 +1,105 @@
+# Guide de Configuration n8n / Make 🤖
+
+Ce document explique comment configurer votre scénario d'automatisation pour réceptionner les paiements Stripe et mettre à jour Pleased.fr.
+
+## Principe Général
+L'application Next.js ne gère **pas** la validation des paiements.
+Quand un utilisateur paye sur Stripe, Stripe envoie un événement (Webhook) `checkout.session.completed` à votre outil d'automatisation (n8n ou Make).
+Votre automatisation doit ensuite :
+1. Lire l'ID du cadeau (ou de la cagnotte) dans les métadonnées de Stripe.
+2. Faire une requête API vers Supabase pour valider la commande.
+3. Envoyer un email/SMS avec le lien magique ou de confirmation.
+
+---
+
+## 1. Configurer le Webhook Stripe
+1. Dans n8n, créez un trigger **Webhook**. Copiez l'URL de test fournie par n8n.
+2. Dans le Dashboard Stripe, allez dans *Développeurs > Webhooks* et ajoutez un endpoint.
+3. Collez l'URL de n8n et sélectionnez l'événement `checkout.session.completed`.
+
+---
+
+## 2. Structure des données envoyées par Stripe
+Lorsque Stripe appelle votre Webhook, le corps JSON ressemble à ceci :
+```json
+{
+  "type": "checkout.session.completed",
+  "data": {
+    "object": {
+      "id": "cs_test_...",
+      "amount_total": 6850,
+      "client_reference_id": "8b3f1234-abcd-...",
+      "metadata": {
+        "giftId": "8b3f1234-abcd-...", 
+        "poolId": "...", // Présent seulement si c'est une cagnotte
+        "participantName": "...", // Présent seulement si cagnotte
+        "participantMessage": "..." // Présent seulement si cagnotte
+      }
+    }
+  }
+}
+```
+
+---
+
+## 3. Mise à jour Supabase (Requête HTTP / Supabase Node)
+Dans n8n, utilisez le **nœud HTTP Request** ou le **nœud Supabase** pour interagir avec votre base de données. 
+Utilisez votre clé d'API secrète Supabase (`service_role` key) pour contourner les règles RLS.
+
+### Cas A : C'est un cadeau simple (giftId est présent)
+*Action : Mettre le statut à "paid" et générer un magic link.*
+- **URL** : `PATCH https://emxdmybwbfxpoovppxlq.supabase.co/rest/v1/gifts?id=eq.{{$json.data.object.metadata.giftId}}`
+- **Headers** : 
+  - `apikey`: `VOTRE_SERVICE_ROLE_KEY`
+  - `Authorization`: `Bearer VOTRE_SERVICE_ROLE_KEY`
+  - `Content-Type`: `application/json`
+- **Body** :
+```json
+{
+  "status": "paid",
+  "magic_link_token": "généré_par_n8n_ou_uuid"
+}
+```
+
+### Cas B : C'est une participation à une Cagnotte (poolId est présent)
+*Action : Insérer la participation dans pool_contributions.*
+- **URL** : `POST https://emxdmybwbfxpoovppxlq.supabase.co/rest/v1/pool_contributions`
+- **Body** :
+```json
+{
+  "pool_id": "{{$json.data.object.metadata.poolId}}",
+  "participant_name": "{{$json.data.object.metadata.participantName}}",
+  "amount": {{$json.data.object.amount_total / 100}},
+  "message": "{{$json.data.object.metadata.participantMessage}}"
+}
+```
+
+---
+
+## 4. Envoi de l'Email / SMS
+Maintenant que le cadeau est payé et mis à jour, utilisez le nœud Gmail / SendGrid / Twilio dans n8n pour avertir l'expéditeur.
+
+**Lien Magique à envoyer :**
+`https://pleased.fr/swap/{{magic_link_token}}`
+
+---
+
+## 🚀 Alternative Rapide : Prompt pour l'Agent IA de n8n
+
+Si vous utilisez la fonctionnalité de génération par IA intégrée à n8n, copiez-collez simplement ce prompt pour générer le workflow complet automatiquement :
+
+> "Je veux créer un workflow qui écoute un Webhook Stripe et met à jour une base de données Supabase via des requêtes HTTP.
+> 
+> 1. Commence par un noeud Webhook (méthode POST, path test-stripe).
+> 2. Ajoute un noeud Switch (ou If) pour vérifier le type d'événement : `{{ $json.body.type }}` doit être égal à `checkout.session.completed`.
+> 3. Ajoute un autre noeud Switch (ou If) pour séparer deux cas basés sur les métadonnées :
+>    - Cas 1 (Cadeau Simple) : Si `{{ $json.body.data.object.metadata.giftId }}` existe.
+>    - Cas 2 (Cagnotte) : Si `{{ $json.body.data.object.metadata.poolId }}` existe.
+> 4. Pour le Cas 1 (Cadeau Simple) :
+>    - Ajoute un noeud 'Crypto' ou exécute un bout de code JS pour générer un UUID aléatoire qui servira de token (sauvegarde-le dans `magic_link_token`).
+>    - Ajoute un noeud HTTP Request configuré en méthode PATCH. L'URL est `https://emxdmybwbfxpoovppxlq.supabase.co/rest/v1/gifts?id=eq.{{ $json.body.data.object.metadata.giftId }}`. Dans les Headers, ajoute `apikey` et `Authorization` (avec le mot Bearer devant) en utilisant ma clé secrète Supabase. Dans le Body (JSON), envoie `{"status": "paid", "magic_link_token": "{{ $json.magic_link_token }}"}`.
+>    - Ajoute ensuite un noeud Gmail/Email pour envoyer le lien `https://pleased.fr/swap/{{ $json.magic_link_token }}`.
+> 5. Pour le Cas 2 (Cagnotte) :
+>    - Ajoute un noeud HTTP Request configuré en méthode POST. L'URL est `https://emxdmybwbfxpoovppxlq.supabase.co/rest/v1/pool_contributions`. Dans les Headers, ajoute `apikey` et `Authorization`. Dans le Body (JSON), envoie les valeurs suivantes : `"pool_id": "{{ $json.body.data.object.metadata.poolId }}"`, `"participant_name": "{{ $json.body.data.object.metadata.participantName }}"`, `"amount": {{ $json.body.data.object.amount_total / 100 }}`, et `"message": "{{ $json.body.data.object.metadata.participantMessage }}"`.
+>
+> Relie tout logiquement et utilise les expressions dynamiques correctement."

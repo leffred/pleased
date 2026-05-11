@@ -1,17 +1,11 @@
 import Link from "next/link";
 import { Gift, Search, Filter } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
-// Fake data for the MVP
-const GIFTS = [
-  { id: "1", name: "Coffret Dégustation Truffes", price: 65, category: "Food", image: "https://images.unsplash.com/photo-1605335035252-4fc88656d0d2?w=800&q=80" },
-  { id: "2", name: "Casque Audio Premium", price: 95, category: "Tech", image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80" },
-  { id: "3", name: "Massage aux Pierres Chaudes", price: 80, category: "Expérience", image: "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=800&q=80" },
-  { id: "4", name: "Bouteille de Champagne Millésimé", price: 75, category: "Food", image: "https://images.unsplash.com/photo-1595955610212-d3ba9281a8ae?w=800&q=80" },
-  { id: "5", name: "Station de Charge Sans Fil en Noyer", price: 55, category: "Tech", image: "https://images.unsplash.com/photo-1586810141695-1e374d6c4644?w=800&q=80" },
-  { id: "6", name: "Dîner Croisière pour Deux", price: 100, category: "Expérience", image: "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800&q=80" },
-];
+export default async function GiftsCatalogue() {
+  const { data: gifts } = await supabase.from('products').select('*');
+  const GIFTS = gifts || [];
 
-export default function GiftsCatalogue() {
   return (
     <div className="min-h-screen bg-muted/20">
       {/* Header compact */}
@@ -31,9 +25,14 @@ export default function GiftsCatalogue() {
               />
             </div>
           </div>
-          <button className="md:hidden p-2 text-muted-foreground hover:text-foreground">
-            <Search className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-4">
+            <button className="md:hidden p-2 text-muted-foreground hover:text-foreground">
+              <Search className="w-5 h-5" />
+            </button>
+            <Link href="/login" className="text-sm font-medium hover:text-primary transition-colors hidden sm:block">
+              Connexion
+            </Link>
+          </div>
         </div>
       </header>
 
