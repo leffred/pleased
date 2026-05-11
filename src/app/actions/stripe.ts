@@ -4,7 +4,7 @@ import Stripe from "stripe";
 import { headers } from "next/headers";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
-  apiVersion: "2024-12-18.acacia", // Updated to the latest stable API version (fallback if not specified)
+  apiVersion: "2026-04-22.dahlia", // Mise à jour pour correspondre aux types du package Stripe
 });
 
 export async function createCheckoutSession(giftId: string, price: number, productName: string, imageUrl: string) {
