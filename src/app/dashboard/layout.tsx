@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Gift, LayoutDashboard, History, Settings, LogOut } from "lucide-react";
 
 export default function DashboardLayout({
@@ -6,28 +9,41 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+
+  const navLinks = [
+    { href: "/dashboard", icon: LayoutDashboard, label: "Vue d'ensemble" },
+    { href: "/dashboard/history", icon: History, label: "Historique" },
+    { href: "/dashboard/settings", icon: Settings, label: "Paramètres" },
+  ];
+
   return (
     <div className="min-h-screen bg-muted/20 flex flex-col md:flex-row">
       {/* Sidebar */}
-      <aside className="w-full md:w-64 bg-background border-r flex flex-col p-4">
+      <aside className="w-full md:w-64 bg-background border-r flex flex-col p-4 sticky top-0 md:h-screen">
         <Link href="/" className="flex items-center gap-2 mb-8 mt-2 px-2">
           <Gift className="w-6 h-6 text-primary" />
           <span className="font-bold text-xl tracking-tight">Pleased</span>
         </Link>
         
         <nav className="flex flex-col gap-2 flex-grow">
-          <Link href="/dashboard" className="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary font-medium">
-            <LayoutDashboard className="w-5 h-5" />
-            Vue d'ensemble
-          </Link>
-          <Link href="/dashboard/history" className="flex items-center gap-3 px-3 py-2 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors font-medium">
-            <History className="w-5 h-5" />
-            Historique
-          </Link>
-          <Link href="/dashboard/settings" className="flex items-center gap-3 px-3 py-2 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors font-medium">
-            <Settings className="w-5 h-5" />
-            Paramètres
-          </Link>
+          {navLinks.map((link) => {
+            const isActive = pathname === link.href;
+            return (
+              <Link 
+                key={link.href}
+                href={link.href} 
+                className={`flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors ${
+                  isActive 
+                    ? "bg-primary/10 text-primary" 
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                }`}
+              >
+                <link.icon className="w-5 h-5" />
+                {link.label}
+              </Link>
+            );
+          })}
         </nav>
 
         <div className="mt-auto pt-4 border-t">

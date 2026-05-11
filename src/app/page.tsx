@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Gift, ArrowRight, Zap, Globe, Heart } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Footer } from "@/components/layout/Footer";
 
 export default function Home() {
   return (
@@ -91,11 +92,7 @@ export default function Home() {
         </section>
       </main>
 
-      <footer className="bg-card border-t py-12">
-        <div className="container mx-auto px-4 text-center text-muted-foreground">
-          <p>© 2026 Pleased.fr - Tous droits réservés.</p>
-        </div>
-      </footer>
+        <Footer />
     </div>
   );
 }

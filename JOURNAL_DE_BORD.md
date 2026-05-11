@@ -4,16 +4,15 @@
 Créer la plateforme "pleased.fr", un service de cadeaux personnels et d'entreprise inspiré de ongoody.com. 
 Le concept principal : envoyer un cadeau via un simple lien (email/SMS), sans connaître l'adresse physique du destinataire.
 
-## État Actuel (Paiement Stripe & Automatisations n8n Intégrés)
-- **Base de Données Supabase** : Tables `profiles`, `products`, `gifts`, `pools` et `pool_contributions` opérationnelles.
-- **Tunnel de Paiement & Stripe** : 
-  - Achat individuel (`/checkout`) fonctionnel avec Stripe Checkout.
-  - Participation aux cagnottes (`/group-gift/[id]`) fonctionnelle avec montants libres envoyés vers Stripe.
-  - L'ID du cadeau ou de la cagnotte est systématiquement passé dans les métadonnées Stripe (`client_reference_id`, `metadata`).
+## État Actuel (Phase 6 - Contenu et Polishing)
+- **Base de Données Supabase** : Tables `profiles`, `products`, `gifts`, `pools` et `pool_contributions` opérationnelles. ~17 produits ajoutés en base.
+- **Tableau de bord** : Historique et Paramètres ajoutés avec l'état actif dans le menu latéral.
+- **Pages Publiques** : Pages "Comment ça marche" et "FAQ" avec design soigné et nouveau composant Footer.
+- **Tunnel de Paiement & Stripe** : Achat individuel et participations aux cagnottes fonctionnels avec Stripe Checkout.
 - **Automatisations n8n** : Workflow configuré et connecté aux Webhooks Stripe pour mettre à jour Supabase et envoyer les emails de confirmation/liens magiques.
 
 ## Bugs / Problèmes
-- Aucun. L'application est prête pour la production.
+- Aucun. Les pages 404 du dashboard et du catalogue ont été corrigées.
 
 ## Prochaines Étapes
 1. **Déploiement Vercel** : 
