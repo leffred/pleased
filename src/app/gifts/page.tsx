@@ -2,6 +2,8 @@ import Link from "next/link";
 import { Gift, Search, Filter } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
+export const dynamic = "force-dynamic";
+
 export default async function GiftsCatalogue() {
   const { data: gifts } = await supabase.from('products').select('*');
   const GIFTS = gifts || [];
@@ -59,7 +61,7 @@ export default async function GiftsCatalogue() {
           {GIFTS.map((gift) => (
             <Link href={`/gifts/${gift.id}`} key={gift.id} className="group flex flex-col bg-card rounded-2xl border overflow-hidden hover:shadow-lg transition-all hover:-translate-y-1">
               <div className="aspect-square bg-muted relative overflow-hidden">
-                <img src={gift.image} alt={gift.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                <img src={gift.image_url} alt={gift.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
               </div>
               <div className="p-4 flex flex-col flex-grow">
                 <div className="text-xs font-semibold text-primary mb-1 uppercase tracking-wider">{gift.category}</div>

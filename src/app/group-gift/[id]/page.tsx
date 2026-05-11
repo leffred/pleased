@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { Gift, CreditCard, Heart, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { createPoolContributionSession } from "@/app/actions/stripe";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function ParticipateGroupGift({ params }: { params: { id: string } }) {
+export default function ParticipateGroupGift({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const router = useRouter();
   const searchParams = useSearchParams();
   const isSuccess = searchParams.get("success") === "true";
@@ -22,15 +23,15 @@ export default function ParticipateGroupGift({ params }: { params: { id: string 
 
   useEffect(() => {
     // Fetch pool details
-    supabase.from('pools').select('*').eq('id', params.id).single().then(({ data }) => {
+    supabase.from('pools').select('*').eq('id', id).single().then(({ data }) => {
       if (data) setPool(data);
     });
 
     // Fetch contributions
-    supabase.from('pool_contributions').select('*').eq('pool_id', params.id).order('created_at', { ascending: false }).then(({ data }) => {
+    supabase.from('pool_contributions').select('*').eq('pool_id', id).order('created_at', { ascending: false }).then(({ data }) => {
       if (data) setContributions(data);
     });
-  }, [params.id]);
+  }, [id]);
 
   const totalAmount = contributions.reduce((sum, c) => sum + (Number(c.amount) || 0), 0);
 
@@ -68,7 +69,7 @@ export default function ParticipateGroupGift({ params }: { params: { id: string 
           <p className="text-muted-foreground mb-8 text-lg">
             Votre paiement a été validé. Votre mot a été ajouté à la cagnotte.
           </p>
-          <Link href={`/group-gift/${params.id}`} className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground py-4 rounded-xl font-bold hover:bg-primary/90 transition-all text-lg">
+          <Link href={`/group-gift/${id}`} className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground py-4 rounded-xl font-bold hover:bg-primary/90 transition-all text-lg">
             Retour à la cagnotte
           </Link>
         </div>
