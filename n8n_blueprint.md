@@ -33,7 +33,9 @@ Lorsque Stripe appelle votre Webhook, le corps JSON ressemble à ceci :
         "giftId": "8b3f1234-abcd-...", 
         "poolId": "...", // Présent seulement si c'est une cagnotte
         "participantName": "...", // Présent seulement si cagnotte
-        "participantMessage": "..." // Présent seulement si cagnotte
+        "participantMessage": "...", // Présent seulement si cagnotte
+        "workspaceId": "...", // Présent si rechargement de portefeuille B2B
+        "type": "workspace_topup" // Présent si rechargement
       }
     }
   }
@@ -73,6 +75,12 @@ Utilisez votre clé d'API secrète Supabase (`service_role` key) pour contourner
   "message": "{{$json.data.object.metadata.participantMessage}}"
 }
 ```
+
+### Cas C : Rechargement d'un Workspace B2B (type === 'workspace_topup')
+*Action : Ajouter les fonds au wallet du Workspace et insérer la transaction.*
+- **Action 1 (Supabase - Fetch)** : Récupérez le workspace existant via `id = {{$json.data.object.metadata.workspaceId}}` pour connaître son solde actuel (`balance`).
+- **Action 2 (Supabase - Update)** : Mettre à jour le workspace avec le nouveau solde : `balance = balance_actuelle + {{$json.data.object.amount_total}}`.
+- **Action 3 (Supabase - Insert)** : Créer une ligne dans `transactions` avec `workspace_id = {{$json.data.object.metadata.workspaceId}}`, `amount = {{$json.data.object.amount_total}}`, et `type = 'deposit'`.
 
 ---
 

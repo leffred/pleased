@@ -92,3 +92,40 @@ export async function createPoolContributionSession(poolId: string, amount: numb
     return { error: error.message };
   }
 }
+
+export async function createTopUpCheckoutSession(workspaceId: string, amountCents: number) {
+  try {
+    const headersList = await headers();
+    const origin = headersList.get("origin") || "http://localhost:3000";
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      mode: "payment",
+      client_reference_id: workspaceId,
+      metadata: {
+        workspaceId: workspaceId,
+        type: "workspace_topup"
+      },
+      line_items: [
+        {
+          price_data: {
+            currency: "eur",
+            product_data: {
+              name: `Rechargement du portefeuille Entreprise`,
+              description: `Ajout de fonds pour l'espace de travail`,
+            },
+            unit_amount: amountCents, // En centimes
+          },
+          quantity: 1,
+        }
+      ],
+      success_url: `${origin}/dashboard/workspaces/${workspaceId}?success=true`,
+      cancel_url: `${origin}/dashboard/workspaces/${workspaceId}`,
+    });
+
+    return { url: session.url };
+  } catch (error: any) {
+    console.error("Stripe topup error:", error);
+    return { error: error.message };
+  }
+}

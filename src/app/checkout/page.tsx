@@ -6,6 +6,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Gift, ArrowLeft, CreditCard, Lock } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { createCheckoutSession } from "@/app/actions/stripe";
+import { payWithWorkspaceBalance } from "@/app/actions/workspace";
+import { Briefcase } from "lucide-react";
 
 function CheckoutContent() {
   const searchParams = useSearchParams();
@@ -16,10 +18,23 @@ function CheckoutContent() {
   const [recipient, setRecipient] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [workspaces, setWorkspaces] = useState<any[]>([]);
+  const [selectedWorkspace, setSelectedWorkspace] = useState<string>("");
 
   useEffect(() => {
+    // Fetch product
     supabase.from('products').select('*').eq('id', productId).single().then(({ data }) => {
       if (data) setProduct(data);
+    });
+
+    // Fetch workspaces the user is member of
+    supabase.from('workspace_members').select('workspace_id').then(({ data: memberData }) => {
+      if (memberData && memberData.length > 0) {
+        const workspaceIds = memberData.map(m => m.workspace_id);
+        supabase.from('workspaces').select('*').in('id', workspaceIds).then(({ data: wsData }) => {
+          setWorkspaces(wsData || []);
+        });
+      }
     });
   }, [productId]);
 
@@ -36,20 +51,33 @@ function CheckoutContent() {
     }).select().single();
 
     if (!error && gift) {
-      // Call Stripe Server Action
-      const { url, error: stripeError } = await createCheckoutSession(
-        gift.id, 
-        product.price, 
-        product.name, 
-        product.image_url
-      );
-
-      if (url) {
-        router.push(url);
+      if (selectedWorkspace) {
+        // Pay with workspace balance
+        const totalCents = Math.round((product.price + 3.50) * 100);
+        const { success, error: wsError } = await payWithWorkspaceBalance(gift.id, selectedWorkspace, totalCents);
+        if (success) {
+          router.push(`/checkout/success?session_id=workspace_${gift.id}`);
+        } else {
+          console.error("Workspace payment error:", wsError);
+          setLoading(false);
+          alert(wsError || "Erreur lors du paiement via le portefeuille.");
+        }
       } else {
-        console.error("Stripe Checkout Error:", stripeError);
-        setLoading(false);
-        alert("Une erreur est survenue lors de l'initialisation du paiement.");
+        // Call Stripe Server Action
+        const { url, error: stripeError } = await createCheckoutSession(
+          gift.id, 
+          product.price, 
+          product.name, 
+          product.image_url
+        );
+
+        if (url) {
+          router.push(url);
+        } else {
+          console.error("Stripe Checkout Error:", stripeError);
+          setLoading(false);
+          alert("Une erreur est survenue lors de l'initialisation du paiement.");
+        }
       }
     } else {
       console.error("Supabase Insert Error:", error);
@@ -105,16 +133,65 @@ function CheckoutContent() {
               </div>
             </div>
 
-            <div className="bg-card border rounded-3xl p-6 md:p-8 shadow-sm opacity-50 pointer-events-none">
+            <div className={`bg-card border rounded-3xl p-6 md:p-8 shadow-sm transition-all ${!recipient ? 'opacity-50 pointer-events-none' : ''}`}>
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold">2. Paiement</h2>
                 <Lock className="w-5 h-5 text-muted-foreground" />
               </div>
-              <p className="text-muted-foreground mb-6">Vous serez redirigé vers notre partenaire sécurisé Stripe après validation.</p>
-              <button className="w-full flex justify-center items-center gap-2 bg-foreground text-background py-4 rounded-xl font-medium">
-                <CreditCard className="w-5 h-5" />
-                Payer de manière sécurisée
-              </button>
+              
+              {workspaces.length > 0 && (
+                <div className="mb-6 space-y-3">
+                  <label className="block text-sm font-medium mb-2">Moyen de paiement</label>
+                  
+                  <div 
+                    onClick={() => setSelectedWorkspace("")}
+                    className={`p-4 border rounded-xl cursor-pointer flex items-center gap-3 transition-colors ${selectedWorkspace === "" ? "border-primary bg-primary/5" : "hover:border-primary/50"}`}
+                  >
+                    <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${selectedWorkspace === "" ? "border-primary" : "border-muted-foreground"}`}>
+                      {selectedWorkspace === "" && <div className="w-2.5 h-2.5 rounded-full bg-primary" />}
+                    </div>
+                    <CreditCard className="w-5 h-5 text-muted-foreground" />
+                    <span className="font-medium">Carte Bancaire (Stripe)</span>
+                  </div>
+
+                  {workspaces.map((ws) => {
+                    const totalCents = Math.round(((product?.price || 0) + 3.50) * 100);
+                    const hasEnoughFunds = ws.balance >= totalCents;
+                    
+                    return (
+                      <div 
+                        key={ws.id}
+                        onClick={() => hasEnoughFunds && setSelectedWorkspace(ws.id)}
+                        className={`p-4 border rounded-xl flex items-center justify-between transition-colors ${hasEnoughFunds ? 'cursor-pointer hover:border-primary/50' : 'opacity-60 cursor-not-allowed'} ${selectedWorkspace === ws.id ? "border-primary bg-primary/5" : ""}`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${selectedWorkspace === ws.id ? "border-primary" : "border-muted-foreground"}`}>
+                            {selectedWorkspace === ws.id && <div className="w-2.5 h-2.5 rounded-full bg-primary" />}
+                          </div>
+                          <Briefcase className="w-5 h-5 text-muted-foreground" />
+                          <div>
+                            <span className="font-medium block">Solde : {ws.name}</span>
+                            <span className="text-sm text-muted-foreground">{(ws.balance / 100).toFixed(2)} € disponibles</span>
+                          </div>
+                        </div>
+                        {!hasEnoughFunds && (
+                          <span className="text-xs font-medium text-destructive bg-destructive/10 px-2 py-1 rounded-full">Solde insuffisant</span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {selectedWorkspace === "" && (
+                <>
+                  <p className="text-muted-foreground mb-6">Vous serez redirigé vers notre partenaire sécurisé Stripe après validation.</p>
+                  <button className="w-full flex justify-center items-center gap-2 bg-foreground text-background py-4 rounded-xl font-medium pointer-events-none">
+                    <CreditCard className="w-5 h-5" />
+                    Paiement par CB sécurisé
+                  </button>
+                </>
+              )}
             </div>
           </div>
 

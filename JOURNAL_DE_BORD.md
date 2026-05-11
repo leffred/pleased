@@ -4,23 +4,22 @@
 Créer la plateforme "pleased.fr", un service de cadeaux personnels et d'entreprise inspiré de ongoody.com. 
 Le concept principal : envoyer un cadeau via un simple lien (email/SMS), sans connaître l'adresse physique du destinataire.
 
-## État Actuel (Phase 7 - Assistant IA et Filtrage Interactif)
+## État Actuel (Phase 8 - B2B & Workspaces)
 ### 1. État du Projet
 *   **Architecture :** Next.js 15 (App Router), Tailwind CSS, Supabase (PostgreSQL), Stripe.
-*   **Contenu :** La base de données contient **723 produits** premium (Tech, Maison, Food, Bien-être, Expérience), avec des prix segmentés entre 10 € et 900 €.
-*   **Statut :** Application déployée et fonctionnelle sur Vercel. Toutes les fonctionnalités récentes d'échange ont été codées et compilent avec succès (0 erreurs TypeScript) !
+*   **Contenu :** La base de données contient **723 produits** premium.
+*   **Statut :** Application déployée et fonctionnelle sur Vercel.
 
 ### 2. Fonctionnalités Implémentées (Session actuelle)
-- **Tableau de bord** : Historique et Paramètres ajoutés avec l'état actif dans le menu latéral.
-- **Pages Publiques** : Pages "Comment ça marche" et "FAQ" avec design soigné et nouveau composant Footer.
-- **Tunnel de Paiement & Stripe** : Achat individuel et participations aux cagnottes fonctionnels avec Stripe Checkout.
-- **Automatisations n8n** : Workflow configuré et connecté aux Webhooks Stripe pour mettre à jour Supabase et envoyer les emails de confirmation/liens magiques.
+- **Espaces Entreprises (B2B)** : Création d'une infrastructure "Workspace" avec `workspaces`, `workspace_members`, et `transactions`.
+- **Top-Up Wallet** : Action Stripe Checkout pour recharger un compte entreprise et documenter le webhook côté n8n.
+- **Paiement B2B** : Modification de la page Checkout pour permettre le paiement d'un cadeau en prélevant directement le solde de l'entreprise si le budget est suffisant.
+- **Digital Unwrapping** : Ajout d'animations `framer-motion` et `canvas-confetti` pour la réception des cadeaux.
 
 ## Bugs / Problèmes
-- Aucun. Les pages 404 du dashboard et du catalogue ont été corrigées.
+- Aucun. Les builds TypeScript passent avec succès.
 
-## Prochaines Étapes
-1. **Déploiement Vercel** : 
-   - Connecter le repository Github à Vercel.
-   - Ajouter toutes les variables d'environnement (Supabase & Stripe) dans les réglages de Vercel.
-   - Lier le nom de domaine définitif (`pleased.fr`).
+## Prochaines Étapes Logiques
+1. **Campagnes en Masse (Mass Gifting)** : Permettre l'upload d'un CSV (Nom, Email, Message, Budget) dans le Workspace pour créer des dizaines de cadeaux d'un coup.
+2. **Automatisations RH** : Documenter ou configurer les scénarios n8n pour générer un cadeau automatique le jour de l'anniversaire ou d'Onboarding d'un membre de l'équipe (via le solde du Workspace).
+3. **Optimisations de l'infrastructure** : Configurer Vercel et ajouter les domaines.

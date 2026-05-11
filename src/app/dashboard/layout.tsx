@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Gift, LayoutDashboard, History, Settings, LogOut } from "lucide-react";
+import { Gift, LayoutDashboard, History, Settings, LogOut, Briefcase } from "lucide-react";
 
 export default function DashboardLayout({
   children,
@@ -14,6 +14,7 @@ export default function DashboardLayout({
   const navLinks = [
     { href: "/dashboard", icon: LayoutDashboard, label: "Vue d'ensemble" },
     { href: "/dashboard/history", icon: History, label: "Historique" },
+    { href: "/dashboard/workspaces", icon: Briefcase, label: "Entreprises" },
     { href: "/dashboard/settings", icon: Settings, label: "Paramètres" },
   ];
 
