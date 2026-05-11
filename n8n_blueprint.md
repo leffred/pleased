@@ -103,3 +103,45 @@ Si vous utilisez la fonctionnalité de génération par IA intégrée à n8n, co
 >    - Ajoute un noeud HTTP Request configuré en méthode POST. L'URL est `https://emxdmybwbfxpoovppxlq.supabase.co/rest/v1/pool_contributions`. Dans les Headers, ajoute `apikey` et `Authorization`. Dans le Body (JSON), envoie les valeurs suivantes : `"pool_id": "{{ $json.body.data.object.metadata.poolId }}"`, `"participant_name": "{{ $json.body.data.object.metadata.participantName }}"`, `"amount": {{ $json.body.data.object.amount_total / 100 }}`, et `"message": "{{ $json.body.data.object.metadata.participantMessage }}"`.
 >
 > Relie tout logiquement et utilise les expressions dynamiques correctement."
+
+---
+
+## 5. Assistant IA (Recommandation de Cadeaux)
+
+Nous avons mis en place un module d'Assistant IA dans le catalogue (`/gifts`). Ce module envoie à n8n le profil du destinataire **et l'intégralité du catalogue**. n8n doit demander à OpenRouter (LLM) de sélectionner les 3 meilleurs produits.
+
+### A. Création du Webhook n8n
+1. Créez un nouveau workflow n8n.
+2. Ajoutez un **Webhook Node** :
+   - Method : `POST`
+   - Path : `ai-gift-assistant`
+   - Respond : `Using Respond to Webhook Node` (Très important, car l'API Next.js attend une réponse).
+3. Copiez l'URL de test/production et ajoutez-la dans votre fichier `.env.local` sous le nom : `N8N_AI_WEBHOOK_URL=votre_url`.
+
+### B. Ajout du noeud OpenRouter (Advanced LLM)
+1. Reliez le Webhook à un noeud **OpenRouter** (ou OpenAI/Anthropic selon ce que vous utilisez sur n8n).
+2. Fournissez le modèle souhaité (ex: `anthropic/claude-3-haiku` ou `gpt-4o-mini` - pas besoin d'un modèle très cher, la tâche est simple).
+3. **Prompt Système à utiliser :**
+```text
+Tu es un personal shopper expert en cadeaux de luxe.
+Voici le catalogue de produits disponible : 
+{{ $json.body.catalog }}
+
+Voici le profil du destinataire :
+- Âge : {{ $json.body.profile.age }}
+- Genre : {{ $json.body.profile.gender }}
+- Centres d'intérêt : {{ $json.body.profile.interests }}
+- Budget max : {{ $json.body.profile.budget }} €
+
+Analyse le profil et sélectionne EXACTEMENT les 3 meilleurs cadeaux du catalogue.
+Tu dois UNIQUEMENT renvoyer un JSON valide avec cette structure stricte :
+{
+  "productIds": ["id_1", "id_2", "id_3"]
+}
+Aucun autre texte, juste le JSON.
+```
+
+### C. Réponse au Webhook
+1. Ajoutez un noeud **Respond to Webhook**.
+2. Connectez la sortie du LLM à ce noeud. Assurez-vous que le noeud renvoie bien le JSON produit par le LLM.
+3. Sauvegardez et activez le workflow.
