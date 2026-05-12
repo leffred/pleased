@@ -58,7 +58,7 @@ Utilisez votre clé d'API secrète Supabase (`service_role` key) pour contourner
 - **Body** :
 ```json
 {
-  "status": "paid",
+  "status": "paid_waiting_address",
   "magic_link_token": "généré_par_n8n_ou_uuid"
 }
 ```
@@ -137,7 +137,7 @@ Si vous utilisez la fonctionnalité de génération par IA intégrée à n8n, co
 >    - Cas 2 (Cagnotte) : Si `{{ $json.body.data.object.metadata.poolId }}` existe.
 > 4. Pour le Cas 1 (Cadeau Simple) :
 >    - Ajoute un noeud 'Crypto' ou exécute un bout de code JS pour générer un UUID aléatoire qui servira de token (sauvegarde-le dans `magic_link_token`).
->    - Ajoute un noeud HTTP Request configuré en méthode PATCH. L'URL est `https://emxdmybwbfxpoovppxlq.supabase.co/rest/v1/gifts?id=eq.{{ $json.body.data.object.metadata.giftId }}`. Dans les Headers, ajoute `apikey` et `Authorization` (avec le mot Bearer devant) en utilisant ma clé secrète Supabase. Dans le Body (JSON), envoie `{"status": "paid", "magic_link_token": "{{ $json.magic_link_token }}"}`.
+>    - Ajoute un noeud HTTP Request configuré en méthode PATCH. L'URL est `https://emxdmybwbfxpoovppxlq.supabase.co/rest/v1/gifts?id=eq.{{ $json.body.data.object.metadata.giftId }}`. Dans les Headers, ajoute `apikey` et `Authorization` (avec le mot Bearer devant) en utilisant ma clé secrète Supabase. Dans le Body (JSON), envoie `{"status": "paid_waiting_address", "magic_link_token": "{{ $json.magic_link_token }}"}`.
 >    - Ajoute ensuite un noeud Gmail/Email pour envoyer le lien `https://pleased.fr/swap/{{ $json.magic_link_token }}`.
 > 5. Pour le Cas 2 (Cagnotte) :
 >    - Ajoute un noeud HTTP Request configuré en méthode POST. L'URL est `https://emxdmybwbfxpoovppxlq.supabase.co/rest/v1/pool_contributions`. Dans les Headers, ajoute `apikey` et `Authorization`. Dans le Body (JSON), envoie les valeurs suivantes : `"pool_id": "{{ $json.body.data.object.metadata.poolId }}"`, `"participant_name": "{{ $json.body.data.object.metadata.participantName }}"`, `"amount": {{ $json.body.data.object.amount_total / 100 }}`, et `"message": "{{ $json.body.data.object.metadata.participantMessage }}"`.

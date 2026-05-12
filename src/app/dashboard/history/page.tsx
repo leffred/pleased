@@ -13,7 +13,7 @@ export default function DashboardHistory() {
     // Dans un cas réel, filtrer par user_id
     supabase.from('gifts')
       .select('*, products(*)')
-      .in('status', ['paid', 'shipped', 'delivered'])
+      .in('status', ['paid_waiting_address', 'shipped', 'delivered', 'swapped'])
       .order('created_at', { ascending: false })
       .then(({ data }) => {
         setGifts(data || []);
@@ -23,18 +23,18 @@ export default function DashboardHistory() {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'paid': return <Clock className="w-5 h-5 text-amber-500" />;
-      case 'shipped': return <Truck className="w-5 h-5 text-blue-500" />;
-      case 'delivered': return <CheckCircle2 className="w-5 h-5 text-green-500" />;
-      default: return <Package className="w-5 h-5 text-muted-foreground" />;
+      case 'paid_waiting_address': return <Clock className="w-4 h-4 text-amber-500" />;
+      case 'shipped': return <Truck className="w-4 h-4 text-blue-500" />;
+      case 'delivered': return <CheckCircle2 className="w-4 h-4 text-green-500" />;
+      default: return <Clock className="w-4 h-4 text-muted-foreground" />;
     }
   };
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'paid': return "En attente d'adresse";
-      case 'shipped': return "En cours de livraison";
-      case 'delivered': return "Livré";
+      case 'paid_waiting_address': return 'Payé (En attente d\'adresse)';
+      case 'shipped': return 'Expédié';
+      case 'delivered': return 'Livré';
       default: return status;
     }
   };
