@@ -48,7 +48,7 @@ function CheckoutContent() {
     const senderId = session?.user?.id;
 
     // Insert gift as pending_payment via Server Action to bypass RLS select issues
-    const { success, gift, error } = await createPendingGift(product.id, recipient, message, senderId);
+    const { success, gift, error } = await createPendingGift(product.id, recipient, message, senderId || null);
 
     if (success && gift) {
       if (selectedWorkspace) {

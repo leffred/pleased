@@ -9,7 +9,7 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "placeholder
 // We use the service role key to bypass RLS for server actions as we don't have authenticated users for receiving gifts
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-export async function createPendingGift(productId: string, recipientName: string, message: string, senderId?: string) {
+export async function createPendingGift(productId: string, recipientName: string, message: string, senderId: string | null = null) {
   try {
     const { data: gift, error } = await supabase.from('gifts').insert({
       product_id: productId,
