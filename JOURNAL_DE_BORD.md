@@ -16,10 +16,15 @@ Le concept principal : envoyer un cadeau via un simple lien (email/SMS), sans co
 - **Paiement B2B** : Modification de la page Checkout pour permettre le paiement d'un cadeau en prélevant directement le solde de l'entreprise si le budget est suffisant.
 - **Digital Unwrapping** : Ajout d'animations `framer-motion` et `canvas-confetti` pour la réception des cadeaux.
 
+### 3. Nouvelles Fonctionnalités B2B (Campagnes et API RH)
+- **Campagnes en Masse (Mass Gifting)** : Création d'un module d'upload de fichier CSV (`/dashboard/workspaces/[id]/campaigns`) permettant d'envoyer des cadeaux à des dizaines de destinataires simultanément en prélevant le coût total sur le solde du compte entreprise (Wallet).
+- **API Automatisations RH** : Création d'une route API sécurisée (`/api/b2b/send-gift`) permettant de générer automatiquement un cadeau depuis n8n (ex: anniversaires, onboarding) et de déduire automatiquement le budget alloué.
+- **Documentation n8n** : Mise à jour du fichier `n8n_blueprint.md` avec le Cas D pour configurer les workflows d'anniversaires ou d'onboarding.
+
 ## Bugs / Problèmes
 - Aucun. Les builds TypeScript passent avec succès.
 
 ## Prochaines Étapes Logiques
-1. **Campagnes en Masse (Mass Gifting)** : Permettre l'upload d'un CSV (Nom, Email, Message, Budget) dans le Workspace pour créer des dizaines de cadeaux d'un coup.
-2. **Automatisations RH** : Documenter ou configurer les scénarios n8n pour générer un cadeau automatique le jour de l'anniversaire ou d'Onboarding d'un membre de l'équipe (via le solde du Workspace).
-3. **Optimisations de l'infrastructure** : Configurer Vercel et ajouter les domaines.
+- Ajouter un filtre de catégories sur le Dashboard B2B pour segmenter les envois.
+- Gérer l'export CSV des transactions pour la comptabilité.
+- Configurer les domaines sur Vercel et passer le projet en production pour un premier test Bêta.

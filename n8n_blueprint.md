@@ -84,7 +84,39 @@ Utilisez votre clé d'API secrète Supabase (`service_role` key) pour contourner
 
 ---
 
-## 4. Envoi de l'Email / SMS
+## 4. Automatisations RH (B2B Mass Gifting & Anniversaires)
+
+Pour envoyer un cadeau de façon automatisée via n8n (ex: le jour de l'anniversaire d'un collaborateur), votre scénario n8n n'a pas besoin de passer par Stripe. Il peut utiliser directement le solde du portefeuille d'entreprise (Workspace).
+
+### Cas D : Cadeau d'Anniversaire ou d'Onboarding
+*Action : Faire un appel à l'API interne pour créer le cadeau et déduire automatiquement le solde du Wallet.*
+
+**Pré-requis dans n8n :**
+- Un nœud qui lit une base de données RH (ex: Google Sheets, Notion, PayFit) tous les jours à 8h00.
+- Un nœud "If" qui filtre les collaborateurs dont la date d'anniversaire est aujourd'hui.
+
+**Configuration de la Requête HTTP (Appel API Interne) :**
+- **Method** : `POST`
+- **URL** : `https://pleased.fr/api/b2b/send-gift`
+- **Headers** : 
+  - `Authorization`: `Bearer VOTRE_SERVICE_ROLE_KEY`
+  - `Content-Type`: `application/json`
+- **Body** :
+```json
+{
+  "workspace_id": "L'ID_DE_VOTRE_WORKSPACE_ENTREPRISE",
+  "product_id": "L'ID_DU_PRODUIT_CADEAU_PAR_DEFAUT",
+  "recipient_name": "{{ $json.Prenom_Collaborateur }}",
+  "recipient_email": "{{ $json.Email_Collaborateur }}",
+  "message": "Joyeux anniversaire de la part de toute l'équipe !"
+}
+```
+
+> **Avantage** : Cette route API sécurisée s'occupe de vérifier le solde, de le déduire, d'enregistrer la transaction et de générer le cadeau dans Supabase de façon atomique.
+
+---
+
+## 5. Envoi de l'Email / SMS
 Maintenant que le cadeau est payé et mis à jour, utilisez le nœud Gmail / SendGrid / Twilio dans n8n pour avertir l'expéditeur.
 
 **Lien Magique à envoyer :**

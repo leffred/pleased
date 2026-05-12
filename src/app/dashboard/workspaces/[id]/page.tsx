@@ -82,6 +82,11 @@ export default function WorkspaceDetail() {
           <h1 className="text-3xl font-bold tracking-tight mb-2">{workspace.name}</h1>
           <p className="text-muted-foreground">Gérez le solde et l'historique de votre entreprise.</p>
         </div>
+        
+        <Link href={`/dashboard/workspaces/${workspaceId}/campaigns`} className="bg-foreground text-background px-6 py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-foreground/90 transition-colors">
+          <Plus className="w-5 h-5" />
+          Lancer une campagne (CSV)
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
