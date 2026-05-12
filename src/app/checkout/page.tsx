@@ -43,8 +43,12 @@ function CheckoutContent() {
     if (!product || !recipient) return;
     setLoading(true);
     
+    // Get current user id
+    const { data: { session } } = await supabase.auth.getSession();
+    const senderId = session?.user?.id;
+
     // Insert gift as pending_payment via Server Action to bypass RLS select issues
-    const { success, gift, error } = await createPendingGift(product.id, recipient, message);
+    const { success, gift, error } = await createPendingGift(product.id, recipient, message, senderId);
 
     if (success && gift) {
       if (selectedWorkspace) {
