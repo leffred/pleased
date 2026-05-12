@@ -17,7 +17,8 @@ export async function createCheckoutSession(giftId: string, price: number, produ
       mode: "payment",
       client_reference_id: giftId, // Important: This is how n8n will link the payment to the gift in Supabase
       metadata: {
-        giftId: giftId
+        giftId: giftId,
+        type: "simple_gift"
       },
       line_items: [
         {
@@ -67,7 +68,8 @@ export async function createPoolContributionSession(poolId: string, amount: numb
       metadata: {
         poolId: poolId,
         participantName: participantName,
-        participantMessage: participantMessage
+        participantMessage: participantMessage,
+        type: "pool_contribution"
       },
       line_items: [
         {
