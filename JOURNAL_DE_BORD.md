@@ -22,7 +22,8 @@ Le concept principal : envoyer un cadeau via un simple lien (email/SMS), sans co
 - **Documentation n8n** : Mise à jour du fichier `n8n_blueprint.md` avec le Cas D pour configurer les workflows d'anniversaires ou d'onboarding.
 
 ## Bugs / Problèmes
-- Aucun. Les builds TypeScript passent avec succès.
+- Problème de paiement résolu via Server Action contournant RLS.
+- Connexion par Lien Magique (Magic Link) réparée (appel réel à Supabase Auth au lieu d'une simulation).
 
 ## Prochaines Étapes Logiques
 - Ajouter un filtre de catégories sur le Dashboard B2B pour segmenter les envois.

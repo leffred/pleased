@@ -7,6 +7,7 @@ import { Gift, ArrowLeft, CreditCard, Lock } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { createCheckoutSession } from "@/app/actions/stripe";
 import { payWithWorkspaceBalance } from "@/app/actions/workspace";
+import { createPendingGift } from "@/app/actions/gift";
 import { Briefcase } from "lucide-react";
 
 function CheckoutContent() {
@@ -42,15 +43,10 @@ function CheckoutContent() {
     if (!product || !recipient) return;
     setLoading(true);
     
-    // Insert gift as pending_payment
-    const { data: gift, error } = await supabase.from('gifts').insert({
-      product_id: product.id,
-      recipient_name: recipient,
-      message: message,
-      status: 'pending_payment'
-    }).select().single();
+    // Insert gift as pending_payment via Server Action to bypass RLS select issues
+    const { success, gift, error } = await createPendingGift(product.id, recipient, message);
 
-    if (!error && gift) {
+    if (success && gift) {
       if (selectedWorkspace) {
         // Pay with workspace balance
         const totalCents = Math.round((product.price + 3.50) * 100);

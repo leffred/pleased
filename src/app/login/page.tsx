@@ -3,19 +3,31 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Gift, Mail, ArrowRight } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success">("idle");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
     setStatus("loading");
-    // Simulate API call for Magic Link
-    setTimeout(() => {
+    
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: `${window.location.origin}/dashboard`,
+      },
+    });
+
+    if (error) {
+      console.error("Magic link error:", error);
+      setStatus("idle");
+      alert(error.message);
+    } else {
       setStatus("success");
-    }, 1500);
+    }
   };
 
   return (
