@@ -82,7 +82,7 @@ function CheckoutContent() {
     } else {
       console.error("Supabase Insert Error:", error);
       setLoading(false);
-      alert("Erreur lors de la création de la commande.");
+      alert(`Erreur lors de la création de la commande: ${error}`);
     }
   };
 
